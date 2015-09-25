@@ -64,9 +64,10 @@ Gnu General Public License, version 3 and above: Please see the included
 LICENSE file.
 
 # Known issues
-Collision detection: Whilst this mostly works very well, there are some
-situations where it fails, I can't work out why, but it's probably a flaw
-in the program logic.
+Rotation: Please see TODO.md: Rotation uses pygame and rotates around an
+axis of the top-left of the shape. Which is mostly fine, but for a long
+narrow block, rotating around the centre of the block might look a bit more
+polished.
 
 # Origins of the program
 Possible starting points were Tetromino written by Al Sweigart included

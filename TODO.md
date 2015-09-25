@@ -25,6 +25,8 @@ Currently there's no sound included; it would be good to have sound
 provided (listen with headphones or an external speaker). Even better
 would be to have the music gradually get more hectic as the game itself
 speeds up. pygame.mixer.music might be helpful for providing sound.
+Tetronimo has an easy approach that might be a quick fix here - just
+kick off a music file, nothing further to do.
 
 ## Object Orientation
 
