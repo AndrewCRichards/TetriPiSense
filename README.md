@@ -52,7 +52,7 @@ program is provided to wrap around the main game; it can be added to
 /etc/rc.local so as to run the game when the Pi starts.
 
 # Authors
-Original PiLite implementation: Stephen Blythe
+Original PiLite implementation: Stephen Blythe  
 This Sense Hat implementation: Andrew Richards
 
 # Website
