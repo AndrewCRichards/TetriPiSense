@@ -12,7 +12,7 @@ how the block's vertical position is tracked.
 Currently there's no sound included; it would be good to have sound
 provided (listen with headphones or an external speaker). Even better
 would be to have the music gradually get more hectic as the game itself
-speeds up. pygame.mixer.music might be helpful for providing sound.
+speeds up. `pygame.mixer.music` might be helpful for providing sound.
 Tetronimo has an easy approach that might be a quick fix here - just
 kick off a music file, nothing further to do.
 
@@ -26,8 +26,8 @@ closer look and improve what's here.
 
 I love the idea of the Raspberry Pi with the Sense Hat and a battery
 being self-contained without the need for a separate keyboard or
-screen. The run_game.py program is provided for this. Possible
+screen. The `run_game.py` program is provided for this. Possible
 enhancements would be to provide more features in this wrapper
 program, perhaps offer additional games (Snake is available as an
-example program for the Sense Hat / Astro Pi for example), or allow
+example program for the Sense Hat / Astro Pi for example), or to allow
 the user to adjust the difficulty of the game.
