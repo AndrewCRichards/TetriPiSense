@@ -59,35 +59,56 @@ def blank_canvas(size=WORKAREA_SIZE):
     return s
 
 
-def make_block(pattern, colour):
+def surface_from_pattern(pattern, colour):
     """
     Returns a pygame.Surface object according to the supplied pattern and colour.
     The pattern is a list of rows, each row is a list of 1s and 0s.
     """
     height = len(pattern)  # Number of rows
     width = (max(len(row) for row in pattern))
-    block = pygame.Surface((width, height), pygame.SRCALPHA)
-    block.fill(CLEAR)
+    s = pygame.Surface((width, height), pygame.SRCALPHA)
+    s.fill(CLEAR)
     for y, row in enumerate(pattern):
         for x, element in enumerate(row):
             if element:
-                block.set_at((x, y), colour)
-    return block
+                s.set_at((x, y), colour)
+    return s
 
 
-def blocks_list():
+def all_block_variants(pattern, colour):
     """
-    Create a surface for each block and put it in an array. Given small display,
-    some smaller blocks used.
+    Given a pattern, create the corresponding pygame.Surface for it with
+    surface_from_pattern() above; also create all its possible
+    variants if rotated.
+    """
+    block_surface = surface_from_pattern(pattern, colour)
+    # Calculate number of pixels set in block_surface; relies on pattern being specified in 1s and 0s,
+    pixels = sum(pixel for row in pattern for pixel in row)
+    block_mask =  pygame.mask.from_surface(block_surface, THRESHOLD)
+    list_of_variants = [block_surface,]
+    for angle in (90, 180, 270):
+        rotated_surface = pygame.transform.rotate(block_surface, -angle) # -angle for clockwise
+        rotated_mask = pygame.mask.from_surface(rotated_surface, THRESHOLD)
+        # See if this variant already exists: No need to store this + further list_of_variants if so,
+        if block_mask.overlap_area(rotated_mask, (0, 0)) == pixels:
+            break
+        list_of_variants.append(rotated_surface)
+    return list_of_variants
+
+
+def blockdata_list():
+    """
+    Create a surface for each block as well as all its variants if rotated,
+    and put these in an array. Given small display, some smaller blocks used.
     """
     bl = []
-    bl.append(make_block([[1, 1], [1, 1]], Color('magenta')))
-    bl.append(make_block([[1, 1, 0], [0, 1, 1]], Color('blue')))
-    bl.append(make_block([[0, 1, 1], [1, 1, 0]], Color('darkorange4')))
-    bl.append(make_block([[0, 1, 0], [1, 1, 1]], Color('red')))
-    bl.append(make_block([[1, 0, 0], [1, 1, 1]], Color('cyan')))
-    bl.append(make_block([[0, 0, 1], [1, 1, 1]], Color('salmon')))
-    bl.append(make_block([[1, 1, 1]], Color('yellow')))
+    bl.append(all_block_variants([[1, 1], [1, 1]], Color('magenta')))
+    bl.append(all_block_variants([[1, 1, 0], [0, 1, 1]], Color('blue')))
+    bl.append(all_block_variants([[0, 1, 1], [1, 1, 0]], Color('darkorange4')))
+    bl.append(all_block_variants([[0, 1, 0], [1, 1, 1]], Color('red')))
+    bl.append(all_block_variants([[1, 0, 0], [1, 1, 1]], Color('cyan')))
+    bl.append(all_block_variants([[0, 0, 1], [1, 1, 1]], Color('salmon')))
+    bl.append(all_block_variants([[1, 1, 1]], Color('yellow')))
     return bl
 
 
@@ -111,6 +132,49 @@ def game_over(frames):
     sense.show_message("Score: "+str(score), text_colour = Color('navyblue')[:3])
 
 
+class Block:
+    """
+    Class to hold block data: Shape of block, variants of this shape when
+    rotated and associated helpful data to enable easy access of the next
+    variant if rotated clockise, anticlockwise. The variants are pre-generated
+    which means that the work to compute the rotated variants doesn't need to
+    happen during the game - although that's only a theoretical concern with
+    the Pi having a huge amount of processing power compared to the
+    transformations for the very small number of pixels in the shapes being
+    computed.
+    """
+    blocks_data = blockdata_list()
+
+
+    def __init__(self):
+        """
+        Create a new block (select the shape randomly) and populate
+        related attributes like self.permutations, self.rotated_right etc.
+        """
+        self._block = self.blocks_data[random.randrange(0, len(self.blocks_data))]
+        self.permutations = len(self._block)
+        self.index = 0
+        self.current_shape = self._block[self.index]
+        self.rotated_left = self._block[(self.index - 1) % self.permutations]
+        self.rotated_right = self._block[(self.index + 1) % self.permutations]
+
+
+    def rotate_left(self):
+        """Adjust Block + attributes corresponding to rotation left"""
+        self.index = (self.index - 1) % self.permutations
+        self.rotated_right = self.current_shape
+        self.current_shape = self.rotated_left
+        self.rotated_left = self._block[(self.index - 1) % self.permutations]
+
+
+    def rotate_right(self):
+        """Adjust Block +  attributes corresponding to rotation right"""
+        self.index = (self.index + 1) % self.permutations
+        self.rotated_left = self.current_shape
+        self.current_shape = self.rotated_right
+        self.rotated_right = self._block[(self.index + 1) % self.permutations]
+
+
 class MyPlayarea:
     """Class to keep track of game 'Surface' and current falling block."""
 
@@ -120,20 +184,14 @@ class MyPlayarea:
         self.background = blank_canvas()  # For blocks that have landed
         self.width = size[0]
         self.height = size[1]
-        self.blocks = blocks_list()
-        self.new_block()
+        self.setup_new_block()
 
 
-    def new_block(self):
-        """Create a new block (select the shape randomly) and give it
-        co-ordinates at the top of the current display/'Surface'.
-        Check that there is actually space in this location for the
-        block; return False if there's no space; otherwise return
-        True and set up the block attributes."""
-        block = self.blocks[random.randrange(0, len(self.blocks))]
+    def setup_new_block(self):
+        block = Block()
         new_x = 3
-        new_y = WORKAREA_HEIGHT - ACTUAL_HEIGHT - block.get_height()
-        if self.can_place_block_here(block, new_x, new_y):
+        new_y = WORKAREA_HEIGHT - ACTUAL_HEIGHT - block.current_shape.get_height()
+        if self.can_place_block_here(block.current_shape, new_x, new_y):
             self.block = block
             self.block_x = new_x
             self.block_y = new_y
@@ -161,7 +219,7 @@ class MyPlayarea:
         See if there is empty space available if the current falling block
         moves by (dx, dy) pixels.
         """
-        if self.can_place_block_here(self.block, self.block_x+dx, self.block_y+dy):
+        if self.can_place_block_here(self.block.current_shape, self.block_x+dx, self.block_y+dy):
             self.block_x = self.block_x + dx
             self.block_y = self.block_y + dy
             return True
@@ -169,24 +227,48 @@ class MyPlayarea:
             return False
 
 
-    def block_rotate(self, angle):
+    def block_rotate_left(self):
         """
         See if there is empty space available if the current falling block
-        is rotate by angle degrees (angle should be a multiple of 90).
+        is rotated left by 90 degrees.
         """
-        rotated_block = pygame.transform.rotate(self.block, angle)
-        if self.can_place_block_here(rotated_block, self.block_x, self.block_y):
-            self.block = rotated_block
+        if self.can_place_block_here(self.block.rotated_left, self.block_x, self.block_y):
+            self.block.rotate_left()
             return True
-        else:
+        else: # Try wiggling rotated block 1 pixel right or left before giving up,
+            if self.can_place_block_here(self.block.rotated_left, self.block_x+1, self.block_y):
+                self.block.rotate_left()
+                return self.block_move(1,0) # True expected since can_place_block_here()
+            if self.can_place_block_here(self.block.rotated_left, self.block_x-1, self.block_y):
+                self.block.rotate_left()
+                return self.block_move(-1,0) # True expected since can_place_block_here()
+            return False
+
+
+    def block_rotate_right(self):
+        """
+        See if there is empty space available if the current falling block
+        is rotated right by 90 degrees.
+        """
+        if self.can_place_block_here(self.block.rotated_right, self.block_x, self.block_y):
+            self.block.rotate_right()
+            return True
+        else: # Try wiggling rotated block 1 pixel right or left before giving up,
+            if self.can_place_block_here(self.block.rotated_right, self.block_x+1, self.block_y):
+                self.block.rotate_right()
+                return self.block_move(1,0) # True expected since can_place_block_here()
+            if self.can_place_block_here(self.block.rotated_right, self.block_x-1, self.block_y):
+                self.block.rotate_right()
+                return self.block_move(-1,0) # True expected since can_place_block_here()
             return False
 
 
     def add_block_to_background(self):
         """
-        Add the current falling block at its current position to the background.
+        Add the current falling block at its current position and orientation to the background.
         """
-        self.background.blit(self.block, [self.block_x, self.block_y], special_flags=pygame.BLEND_RGBA_ADD)
+        self.background.blit(self.block.current_shape, [self.block_x, self.block_y],
+                                                       special_flags=pygame.BLEND_RGBA_ADD)
 
 
     def render(self):
@@ -194,7 +276,8 @@ class MyPlayarea:
         screen = blank_canvas()
         screen.fill(CLEAR)
         screen.blit(self.background, (0, 0))
-        screen.blit(self.block, [self.block_x, self.block_y], special_flags=pygame.BLEND_RGBA_ADD)
+        screen.blit(self.block.current_shape, [self.block_x, self.block_y],
+                                              special_flags=pygame.BLEND_RGBA_ADD)
         sensehat_display(screen)
 
 
@@ -249,9 +332,9 @@ def tetripisense():
                         if event.key == pygame.K_RIGHT:
                             moved = s.block_move(1,0)
                         if event.key == pygame.K_UP:
-                            moved = s.block_rotate(90)
+                            moved = s.block_rotate_right()
                         if event.key == pygame.K_DOWN:
-                            moved = s.block_rotate(-90)
+                            moved = s.block_rotate_left()
                         if event.key == pygame.K_RETURN:
                             drop_block = True
             frames_before_drop -= 1
@@ -261,8 +344,8 @@ def tetripisense():
                 else: # Collision downwards at pos_y+1
                     s.add_block_to_background()
                     s.remove_full_lines()
-                    if not s.new_block():
-                        break # New block collides with existing blocks
+                    if not s.setup_new_block():
+                        break  # New block collides with existing blocks
                     drop_block = False
                 # Progressively reduce to make game harder,
                 frames_before_drop = 10 - int(math.log(frames,5))
