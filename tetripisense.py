@@ -136,7 +136,7 @@ class Block:
     """
     Class to hold block data: Shape of block, variants of this shape when
     rotated and associated helpful data to enable easy access of the next
-    variant if rotated clockise, anticlockwise. The variants are pre-generated
+    variant if rotated [clockise]. The variants are pre-generated
     which means that the work to compute the rotated variants doesn't need to
     happen during the game - although that's only a theoretical concern with
     the Pi having a huge amount of processing power compared to the
@@ -149,30 +149,23 @@ class Block:
     def __init__(self):
         """
         Create a new block (select the shape randomly) and populate
-        related attributes like self.permutations, self.rotated_right etc.
+        related attributes like self.permutations, self.rotated etc.
         """
         self._block = self.blocks_data[random.randrange(0, len(self.blocks_data))]
         self.permutations = len(self._block)
         self.index = 0
+        self.set_shape_attributes()
+
+
+    def set_shape_attributes(self):
         self.current_shape = self._block[self.index]
-        self.rotated_left = self._block[(self.index - 1) % self.permutations]
-        self.rotated_right = self._block[(self.index + 1) % self.permutations]
+        self.rotated = self._block[(self.index + 1) % self.permutations]
 
 
-    def rotate_left(self):
-        """Adjust Block + attributes corresponding to rotation left"""
-        self.index = (self.index - 1) % self.permutations
-        self.rotated_right = self.current_shape
-        self.current_shape = self.rotated_left
-        self.rotated_left = self._block[(self.index - 1) % self.permutations]
-
-
-    def rotate_right(self):
-        """Adjust Block +  attributes corresponding to rotation right"""
+    def rotate_clockwise(self):
+        """Adjust Block +  attributes corresponding to clockwise rotation"""
         self.index = (self.index + 1) % self.permutations
-        self.rotated_left = self.current_shape
-        self.current_shape = self.rotated_right
-        self.rotated_right = self._block[(self.index + 1) % self.permutations]
+        self.set_shape_attributes()
 
 
 class MyPlayarea:
@@ -227,38 +220,20 @@ class MyPlayarea:
             return False
 
 
-    def block_rotate_left(self):
+    def block_rotate(self):
         """
         See if there is empty space available if the current falling block
-        is rotated left by 90 degrees.
+        is rotated clockwise by 90 degrees.
         """
-        if self.can_place_block_here(self.block.rotated_left, self.block_x, self.block_y):
-            self.block.rotate_left()
+        if self.can_place_block_here(self.block.rotated, self.block_x, self.block_y):
+            self.block.rotate_clockwise()
             return True
         else: # Try wiggling rotated block 1 pixel right or left before giving up,
-            if self.can_place_block_here(self.block.rotated_left, self.block_x+1, self.block_y):
-                self.block.rotate_left()
+            if self.can_place_block_here(self.block.rotated, self.block_x+1, self.block_y):
+                self.block.rotate_clockwise()
                 return self.block_move(1,0) # True expected since can_place_block_here()
-            if self.can_place_block_here(self.block.rotated_left, self.block_x-1, self.block_y):
-                self.block.rotate_left()
-                return self.block_move(-1,0) # True expected since can_place_block_here()
-            return False
-
-
-    def block_rotate_right(self):
-        """
-        See if there is empty space available if the current falling block
-        is rotated right by 90 degrees.
-        """
-        if self.can_place_block_here(self.block.rotated_right, self.block_x, self.block_y):
-            self.block.rotate_right()
-            return True
-        else: # Try wiggling rotated block 1 pixel right or left before giving up,
-            if self.can_place_block_here(self.block.rotated_right, self.block_x+1, self.block_y):
-                self.block.rotate_right()
-                return self.block_move(1,0) # True expected since can_place_block_here()
-            if self.can_place_block_here(self.block.rotated_right, self.block_x-1, self.block_y):
-                self.block.rotate_right()
+            if self.can_place_block_here(self.block.rotated, self.block_x-1, self.block_y):
+                self.block.rotate_clockwise()
                 return self.block_move(-1,0) # True expected since can_place_block_here()
             return False
 
@@ -331,7 +306,7 @@ def tetripisense():
                         if event.key == pygame.K_RIGHT:
                             moved = s.block_move(1,0)
                         if event.key == pygame.K_UP:
-                            moved = s.block_rotate_right()
+                            moved = s.block_rotate()
                         if event.key == pygame.K_DOWN:
                             drop_block = True
             frames_before_drop -= 1
