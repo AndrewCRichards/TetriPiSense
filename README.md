@@ -30,10 +30,10 @@ know about earlier versions of Python),
 
     python tetripisense.py
 
-The joystick controls the block: Move left/right, rotate anticlockwise/
-clockwise, press to drop the current block; all of these are also available
-via the keyboard (USB-connected to Pi) using the arrow keys and the Return key,
-as well as the Esc key to exit the game.
+The joystick controls the block: Move left/right, rotate (clockwise), drop
+the current block; all of these are also available via the keyboard
+(USB-connected to Pi) using the arrow keys, as well as the Esc key to exit
+the game.
 
 If you're accessing the Raspberry Pi remotely (e.g. via ssh),
 
@@ -79,7 +79,7 @@ spend a fair amount of time polishing the code and ironing out a few bugs.
 
 # Some notes on the code
 Having only 8 vertical LEDs makes it harder to achieve a reasonably playable
-game, so I added another 'virtual' row of pixels for the behind-the-scenes
+game, so I added extra 'virtual' rows of pixels for the behind-the-scenes
 pygame.Surface, which gives the sense of the new block emerging at the top
 of the display, rather than the whole block suddenly appearing at the top of
 the display - this gives the player a bit more time to manoevre the new block
@@ -93,11 +93,7 @@ displaying the game uses the sensehat_display() function which converts from
 the pygame representation of the display to the representation used by
 sense_hat's set_pixels() method.
 
-The falling block and/or the [virtual] pixel matrix (pygame.Surface) feel like
-they could become proper objects in a more object-oriented implementation, but
-I've not found time for that and probably won't. Anyone?
-
-Unit or other tests are also conspicuously absent here but would be very
+Unit or other tests are conspicuously absent here but would be very
 worthwhile, even if only part of the code lends itself to this.
 
 

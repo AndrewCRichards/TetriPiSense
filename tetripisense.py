@@ -7,9 +7,9 @@ pygame used for colours, collision detection, timing and keyboard handling.
 Controls (sticking with the Sense Hat joystick-to-keyboard mappings):
     Joystick left   /  Left Arrow  - Move left
     Joystick right  /  Right Arrow - Move right
-    Joystick up     /  Up Arrow    - Rotate anti-clockwise
-    Joystick down   /  Down Arrow  - Rotate clockwise
-    Joystick press  /  Return key  - Drop current block
+    Joystick up     /  Up Arrow    - Rotate clockwise
+    Joystick down   /  Down Arrow  - Drop current block
+    Joystick press  /  Return key  - Not currently setup
 
 Stephen Blythe 2014 (Originial PiLite implementation)
 Andrew Richards 2015 (Sense Hat implementation)
@@ -320,9 +320,8 @@ def tetripisense():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
-                if drop_block and event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+                if drop_block and event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
                     drop_block = False
-                    #moved = True
                 if event.type == pygame.KEYDOWN:
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         return
@@ -334,8 +333,6 @@ def tetripisense():
                         if event.key == pygame.K_UP:
                             moved = s.block_rotate_right()
                         if event.key == pygame.K_DOWN:
-                            moved = s.block_rotate_left()
-                        if event.key == pygame.K_RETURN:
                             drop_block = True
             frames_before_drop -= 1
             if frames_before_drop == 0:

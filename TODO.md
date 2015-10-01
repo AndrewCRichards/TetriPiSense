@@ -2,25 +2,13 @@
 
 ## Rotation
 
-Rotating blocks could be better in 2 ways:
-
- - The axis of rotation: Consider the linear 3-unit block. When
-   rotated, it rotates by its left end. It would probably feel
-   more 'natural' to rotate around its centre, but this does
-   complicate how the block's vertical position is tracked.
-
- - At the sides of the display: Sometimes rotation is not
-   permitted because part of the rotated block would extend
-   beyond the display. It may feel more 'natural', when this
-   occurs, to try to rotate the block whilst moving it one
-   unit inwards.
-
-One possible enhancement re. rotation could be to pre-compute all the
-possible rotated shapes, and store not just the shape itself but also
-its rotated versions in a list which could then be accessed by using
-list indexing.
+Rotating blocks could be better: Consider the linear 3-unit block.
+When rotated, it rotates by its left end. It would probably feel
+more 'natural' to rotate around its centre, but this does complicate
+how the block's vertical position is tracked.
 
 ## Sound
+
 Currently there's no sound included; it would be good to have sound
 provided (listen with headphones or an external speaker). Even better
 would be to have the music gradually get more hectic as the game itself
@@ -28,15 +16,11 @@ speeds up. pygame.mixer.music might be helpful for providing sound.
 Tetronimo has an easy approach that might be a quick fix here - just
 kick off a music file, nothing further to do.
 
-## Object Orientation
+## Object Orientation (OO)
 
-I feel that I've not achieved the level of Object Orientation I would
-like with this program - in particular it feels like the falling block
-could benefit from being a separate object/ class, but the attempts
-I've made in this direction get awkward quickly: Whilst moving left,
-right and down seem not to create any difficulties, rotation is
-problematic, although the idea above about pre-computing rotated
-shapes might be useful in addressing this.
+I feel that I've not achieved the level of OO I would like with this
+program; I'm hopeful that someone with better OO skills will take a
+closer look and improve what's here.
 
 ## Automatically starting the game
 
