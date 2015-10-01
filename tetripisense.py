@@ -82,14 +82,14 @@ def all_block_variants(pattern, colour):
     variants if rotated.
     """
     block_surface = surface_from_pattern(pattern, colour)
-    # Calculate number of pixels set in block_surface; relies on pattern being specified in 1s and 0s,
+    # Calculate number of pixels assuming 1s and 0s in pattern
     pixels = sum(pixel for row in pattern for pixel in row)
-    block_mask =  pygame.mask.from_surface(block_surface, THRESHOLD)
-    list_of_variants = [block_surface,]
-    for angle in (90, 180, 270):
-        rotated_surface = pygame.transform.rotate(block_surface, -angle) # -angle for clockwise
+    block_mask = pygame.mask.from_surface(block_surface, THRESHOLD)
+    list_of_variants = [block_surface, ]
+    for angle in (-90, -180, -270):  # -90 etc: clockwise rotation in pygame.transform.rotate
+        rotated_surface = pygame.transform.rotate(block_surface, angle)
         rotated_mask = pygame.mask.from_surface(rotated_surface, THRESHOLD)
-        # See if this variant already exists: No need to store this + further list_of_variants if so,
+        # Don't store any variants for this block that are already stored,
         if block_mask.overlap_area(rotated_mask, (0, 0)) == pixels:
             break
         list_of_variants.append(rotated_surface)
@@ -121,15 +121,15 @@ def block_mask(block, x, y):
 
 def game_over(frames):
     """Print score etc, exit cleanly"""
-    score = int(frames/10)  # Tweak as desired
+    score = int(frames / 10)  # Tweak as desired
     print("Game over, score: {0}".format(score))
     # Draw a red cross on the Hat, wait a bit, then display the score there,
     hat_canvas = blank_canvas(ACTUAL_SIZE)
-    pygame.draw.line(hat_canvas, Color('red'), (0, 0), (WIDTH - 1, ACTUAL_HEIGHT-1))
-    pygame.draw.line(hat_canvas, Color('red'), (WIDTH - 1, 0), (0, ACTUAL_HEIGHT-1))
+    pygame.draw.line(hat_canvas, Color('red'), (0, 0), (WIDTH - 1, ACTUAL_HEIGHT - 1))
+    pygame.draw.line(hat_canvas, Color('red'), (WIDTH - 1, 0), (0, ACTUAL_HEIGHT - 1))
     sensehat_display(hat_canvas)
     pygame.time.wait(2000)
-    sense.show_message("Score: "+str(score), text_colour = Color('navyblue')[:3])
+    sense.show_message("Score: " + str(score), text_colour=Color('navyblue')[:3])
 
 
 class Block:
@@ -145,7 +145,6 @@ class Block:
     """
     blocks_data = blockdata_list()
 
-
     def __init__(self):
         """
         Create a new block (select the shape randomly) and populate
@@ -156,11 +155,9 @@ class Block:
         self.index = 0
         self.set_shape_attributes()
 
-
     def set_shape_attributes(self):
         self.current_shape = self._block[self.index]
         self.rotated = self._block[(self.index + 1) % self.permutations]
-
 
     def rotate_clockwise(self):
         """Adjust Block +  attributes corresponding to clockwise rotation"""
@@ -171,14 +168,12 @@ class Block:
 class MyPlayarea:
     """Class to keep track of game 'Surface' and current falling block."""
 
-
     def __init__(self, size=WORKAREA_SIZE):
         pygame.init()  # In case not already called
         self.background = blank_canvas()  # For blocks that have landed
         self.width = size[0]
         self.height = size[1]
         self.setup_new_block()
-
 
     def setup_new_block(self):
         block = Block()
@@ -192,7 +187,6 @@ class MyPlayarea:
         else:
             return False
 
-
     def can_place_block_here(self, block, x, y):
         """
         Check if having block at (x,y) would exceed the borders of workarea.
@@ -200,25 +194,24 @@ class MyPlayarea:
         is placed at position (x,y).
         """
         border_violation = x < 0 or y < 0 or \
-            x + block.get_width() > self.width or \
-            y + block.get_height() > self.height
+                           x + block.get_width() > self.width or \
+                           y + block.get_height() > self.height
         background_mask = pygame.mask.from_surface(self.background, THRESHOLD)
         collision = background_mask.overlap(block_mask(block, x, y), (0, 0))
         return not (border_violation or collision)
-
 
     def block_move(self, dx, dy):
         """
         See if there is empty space available if the current falling block
         moves by (dx, dy) pixels.
         """
-        if self.can_place_block_here(self.block.current_shape, self.block_x+dx, self.block_y+dy):
+        if self.can_place_block_here(self.block.current_shape, self.block_x + dx,
+                                     self.block_y + dy):
             self.block_x = self.block_x + dx
             self.block_y = self.block_y + dy
             return True
         else:
             return False
-
 
     def block_rotate(self):
         """
@@ -228,23 +221,21 @@ class MyPlayarea:
         if self.can_place_block_here(self.block.rotated, self.block_x, self.block_y):
             self.block.rotate_clockwise()
             return True
-        else: # Try wiggling rotated block 1 pixel right or left before giving up,
-            if self.can_place_block_here(self.block.rotated, self.block_x+1, self.block_y):
+        else:  # Try wiggling rotated block 1 pixel right or left before giving up,
+            if self.can_place_block_here(self.block.rotated, self.block_x + 1, self.block_y):
                 self.block.rotate_clockwise()
-                return self.block_move(1,0) # True expected since can_place_block_here()
-            if self.can_place_block_here(self.block.rotated, self.block_x-1, self.block_y):
+                return self.block_move(1, 0)  # True expected since can_place_block_here()
+            if self.can_place_block_here(self.block.rotated, self.block_x - 1, self.block_y):
                 self.block.rotate_clockwise()
-                return self.block_move(-1,0) # True expected since can_place_block_here()
+                return self.block_move(-1, 0)  # True expected since can_place_block_here()
             return False
-
 
     def add_block_to_background(self):
         """
-        Add the current falling block at its current position and orientation to the background.
+        Add the current falling block at its current position and orientation to the background
         """
         self.background.blit(self.block.current_shape, [self.block_x, self.block_y],
-                                                       special_flags=pygame.BLEND_RGBA_ADD)
-
+                             special_flags=pygame.BLEND_RGBA_ADD)
 
     def render(self):
         '''Renders background and block in current position'''
@@ -252,9 +243,8 @@ class MyPlayarea:
         screen.fill(CLEAR)
         screen.blit(self.background, (0, 0))
         screen.blit(self.block.current_shape, [self.block_x, self.block_y],
-                                              special_flags=pygame.BLEND_RGBA_ADD)
+                    special_flags=pygame.BLEND_RGBA_ADD)
         sensehat_display(screen)
-
 
     def remove_full_lines(self):
         """
@@ -302,28 +292,28 @@ def tetripisense():
                         return
                     if not drop_block and not moved:
                         if event.key == pygame.K_LEFT:
-                            moved = s.block_move(-1,0)
+                            moved = s.block_move(-1, 0)
                         if event.key == pygame.K_RIGHT:
-                            moved = s.block_move(1,0)
+                            moved = s.block_move(1, 0)
                         if event.key == pygame.K_UP:
                             moved = s.block_rotate()
                         if event.key == pygame.K_DOWN:
                             drop_block = True
             frames_before_drop -= 1
             if frames_before_drop == 0:
-                if s.block_move(0, 1): # Move down
+                if s.block_move(0, 1):  # Move down
                     pass
-                else: # Collision downwards at pos_y+1
+                else:  # Collision downwards
                     s.add_block_to_background()
                     s.remove_full_lines()
                     if not s.setup_new_block():
                         break  # New block collides with existing blocks
                     drop_block = False
                 # Progressively reduce to make game harder,
-                frames_before_drop = 10 - int(math.log(frames,5))
+                frames_before_drop = 10 - int(math.log(frames, 5))
             s.render()
             if drop_block:
-                clock.tick(FRAME_RATE*10)  # Fast descent
+                clock.tick(FRAME_RATE * 10)  # Fast descent
             else:
                 clock.tick(FRAME_RATE)
     except KeyboardInterrupt:
