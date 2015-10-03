@@ -103,12 +103,12 @@ def blockdata_list():
     """
     bl = []
     bl.append(all_block_variants([[1, 1], [1, 1]], Color('magenta')))
-    bl.append(all_block_variants([[1, 1, 0], [0, 1, 1]], Color('blue')))
-    bl.append(all_block_variants([[0, 1, 1], [1, 1, 0]], Color('darkorange4')))
-    bl.append(all_block_variants([[0, 1, 0], [1, 1, 1]], Color('red')))
-    bl.append(all_block_variants([[1, 0, 0], [1, 1, 1]], Color('cyan')))
-    bl.append(all_block_variants([[0, 0, 1], [1, 1, 1]], Color('salmon')))
-    bl.append(all_block_variants([[1, 1, 1]], Color('yellow')))
+    bl.append(all_block_variants([[0, 1], [1, 1], [1, 0]], Color('blue')))
+    bl.append(all_block_variants([[1, 0], [1, 1], [0, 1]], Color('darkorange4')))
+    bl.append(all_block_variants([[1, 1, 1], [0, 1, 0]], Color('red')))
+    bl.append(all_block_variants([[1, 1], [1, 0], [1, 0]], Color('cyan')))
+    bl.append(all_block_variants([[1, 1], [0, 1], [0, 1]], Color('salmon')))
+    bl.append(all_block_variants([[1,], [1,], [1,]], Color('yellow')))
     return bl
 
 
@@ -155,13 +155,16 @@ class Block:
         self.index = 0
         self.set_shape_attributes()
 
+    def rotated_clockwise_index(self):
+	return (self.index + 1) % self.permutations
+
     def set_shape_attributes(self):
         self.current_shape = self._block[self.index]
-        self.rotated = self._block[(self.index + 1) % self.permutations]
+        self.rotated = self._block[self.rotated_clockwise_index()]
 
     def rotate_clockwise(self):
         """Adjust Block +  attributes corresponding to clockwise rotation"""
-        self.index = (self.index + 1) % self.permutations
+        self.index = self.rotated_clockwise_index()
         self.set_shape_attributes()
 
 
