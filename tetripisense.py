@@ -66,8 +66,7 @@ def surface_from_pattern(pattern, colour):
     """
     height = len(pattern)  # Number of rows
     width = (max(len(row) for row in pattern))
-    s = pygame.Surface((width, height), pygame.SRCALPHA)
-    s.fill(CLEAR)
+    s = blank_canvas(size = ((width, height))
     for y, row in enumerate(pattern):
         for x, element in enumerate(row):
             if element:
@@ -155,16 +154,17 @@ class Block:
         self.index = 0
         self.set_shape_attributes()
 
+    @property
     def rotated_clockwise_index(self):
 	return (self.index + 1) % self.permutations
 
     def set_shape_attributes(self):
         self.current_shape = self._block[self.index]
-        self.rotated = self._block[self.rotated_clockwise_index()]
+        self.rotated = self._block[self.rotated_clockwise_index]
 
     def rotate_clockwise(self):
         """Adjust Block +  attributes corresponding to clockwise rotation"""
-        self.index = self.rotated_clockwise_index()
+        self.index = self.rotated_clockwise_index
         self.set_shape_attributes()
 
 
@@ -243,7 +243,6 @@ class MyPlayarea:
     def render(self):
         '''Renders background and block in current position'''
         screen = blank_canvas()
-        screen.fill(CLEAR)
         screen.blit(self.background, (0, 0))
         screen.blit(self.block.current_shape, [self.block_x, self.block_y],
                     special_flags=pygame.BLEND_RGBA_ADD)
