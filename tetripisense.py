@@ -66,7 +66,7 @@ def surface_from_pattern(pattern, colour):
     """
     height = len(pattern)  # Number of rows
     width = (max(len(row) for row in pattern))
-    s = blank_canvas(size = ((width, height))
+    s = blank_canvas(size = ((width, height)))
     for y, row in enumerate(pattern):
         for x, element in enumerate(row):
             if element:
