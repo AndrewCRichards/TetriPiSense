@@ -28,6 +28,7 @@ TOTAL_LEDS = WIDTH * ACTUAL_HEIGHT
 CLEAR = (0, 0, 0, 0)
 THRESHOLD = 10  # Colour intensity over which a pixel/LED counts as 'on'.
 FRAME_RATE = 10  # Frames per second
+BASE_FRAMES = 10  # Frames between drops, value reduces during game
 sense = sense_hat.SenseHat()
 
 
@@ -123,10 +124,10 @@ def game_over(frames):
     score = int(frames / 10)  # Tweak as desired
     print("Game over, score: {0}".format(score))
     # Draw a red cross on the Hat, wait a bit, then display the score there,
-    hat_canvas = blank_canvas(ACTUAL_SIZE)
-    pygame.draw.line(hat_canvas, Color('red'), (0, 0), (WIDTH - 1, ACTUAL_HEIGHT - 1))
-    pygame.draw.line(hat_canvas, Color('red'), (WIDTH - 1, 0), (0, ACTUAL_HEIGHT - 1))
-    sensehat_display(hat_canvas)
+    canvas = blank_canvas(ACTUAL_SIZE)
+    pygame.draw.line(canvas, Color('red'), (0, 0), (WIDTH - 1, ACTUAL_HEIGHT - 1))
+    pygame.draw.line(canvas, Color('red'), (WIDTH - 1, 0), (0, ACTUAL_HEIGHT - 1))
+    sensehat_display(canvas)
     pygame.time.wait(2000)
     sense.show_message("Score: " + str(score), text_colour=Color('navyblue')[:3])
 
@@ -156,7 +157,7 @@ class Block:
 
     @property
     def rotated_clockwise_index(self):
-	return (self.index + 1) % self.permutations
+        return (self.index + 1) % self.permutations
 
     def set_shape_attributes(self):
         self.current_shape = self._block[self.index]
@@ -267,7 +268,7 @@ class MyPlayarea:
                 background_mask = pygame.mask.from_surface(self.background, THRESHOLD)
 
 
-def tetripisense():
+def run_game():
     sense.clear()
     pygame.init()
 
@@ -277,7 +278,7 @@ def tetripisense():
     clock = pygame.time.Clock()
     s = MyPlayarea()
     frames = 0
-    frames_before_drop = 10
+    frames_before_drop = BASE_FRAMES
     drop_block = False
     try:
         while True:
@@ -312,10 +313,10 @@ def tetripisense():
                         break  # New block collides with existing blocks
                     drop_block = False
                 # Progressively reduce to make game harder,
-                frames_before_drop = 10 - int(math.log(frames, 5))
+                frames_before_drop = BASE_FRAMES - int(math.log(frames, 5))
             s.render()
             if drop_block:
-                clock.tick(FRAME_RATE * 10)  # Fast descent
+                clock.tick(FRAME_RATE * BASE_FRAMES)  # Fast descent
             else:
                 clock.tick(FRAME_RATE)
     except KeyboardInterrupt:
@@ -324,7 +325,7 @@ def tetripisense():
 
 
 if __name__ == '__main__':
-    tetripisense()
+    run_game()
     sense.clear()
     pygame.quit()
     sys.exit()
