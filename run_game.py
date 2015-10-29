@@ -63,7 +63,7 @@ def startgame_loop():
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         return
                     sense.clear()
-                    tetripisense.tetripisense()
+                    tetripisense.run_game()
             clock.tick(10)
             index += 1
     except KeyboardInterrupt:
