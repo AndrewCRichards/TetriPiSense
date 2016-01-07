@@ -121,6 +121,11 @@ works too): Add the following line before the final `exit 0` line in
 
     python /home/pi/tetripisense/run_game.py
 
-assuming `run_game.py` and `tetripisense.py` are in the directory above.
-Also note that this will be running `run_game.py` and `tetripisense.py`
-with administrator privileges which is poor practice.
+assuming `run_game.py` and `tetripisense.py` are in the directory above. When
+you finish playing you can shutdown the Pi cleanly by turning it upside down
+briefly which will initiate a `shutdown`: The SenseHat's accelerometer is
+checked to see if the Hat is upside-down and calls `shutdown` if so - but
+only during the `Press joystick` (`run_game.py`) loop, not during games.
+
+Note that this approach will run `run_game.py` and `tetripisense.py` with
+administrator privileges which is poor practice.
