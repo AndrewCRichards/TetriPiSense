@@ -9,7 +9,7 @@ Andrew Richards 2015
 --------------------------------------------------------------------------
 """
 
-import sys, pygame, random, sense_hat, math, tetripisense
+import sys, pygame, random, sense_hat, math, tetripisense, subprocess, atexit
 from pygame.color import Color
 
 sense = sense_hat.SenseHat()
@@ -66,12 +66,17 @@ def startgame_loop():
                     tetripisense.run_game()
             clock.tick(10)
             index += 1
+            if sense.get_accelerometer_raw()['z'] < -0.7:  # Inverted Hat[+Pi]
+                sense.show_message("Shutting down...  ")
+                subprocess.call("shutdown -h now", shell=True, stdout=open("/dev/null"))
+                return
     except KeyboardInterrupt:
         return
 
-
-if __name__ == '__main__':
-    startgame_loop()
+def cleanup():
     sense.clear()
     pygame.quit()
-    sys.exit()
+
+if __name__ == '__main__':
+    atexit.register(cleanup)
+    startgame_loop()
